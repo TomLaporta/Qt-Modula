@@ -1,0 +1,89 @@
+[app]
+
+# application title used for the packaged artifact name
+title = qt-modula
+
+# project root directory
+project_dir = __PROJECT_DIR__
+
+# source file entry point path
+input_file = __INPUT_FILE__
+
+# directory where the deploy tool copies the packaged artifact
+exec_directory = __EXEC_DIRECTORY__
+
+# path to the project file relative to project_dir
+project_file = __PROJECT_FILE__
+
+# application icon
+icon = __ICON_PATH__
+
+[python]
+
+# python path used for deployment
+python_path = __PYTHON_PATH__
+
+# python packages required by pyside6-deploy
+packages = Nuitka==2.7.11
+
+# buildozer = for deploying Android application
+android_packages = buildozer==1.5.0,cython==0.29.33
+
+[qt]
+
+# paths to required qml files. comma separated
+qml_files =
+
+# excluded qml plugin binaries
+excluded_qml_plugins =
+
+# qt modules used. blank lets pyside6-deploy discover them per platform
+modules =
+
+# qt plugins used by the application. blank lets pyside6-deploy discover them
+plugins =
+
+[android]
+
+# path to pyside wheel
+wheel_pyside =
+
+# path to shiboken wheel
+wheel_shiboken =
+
+# plugins to be copied to libs folder of the packaged application. comma separated
+plugins =
+
+[nuitka]
+
+# usage description for permissions requested by the app as found in the info.plist
+macos.permissions =
+
+# mode of using nuitka. accepts standalone or onefile
+mode = standalone
+
+# specify any extra nuitka arguments
+extra_args = --quiet --noinclude-qt-translations --include-package-data=qt_modula --disable-cache=ccache --include-module=PySide6.QtOpenGL
+
+[buildozer]
+
+# build mode
+mode = debug
+
+# path to pyside6 and shiboken6 recipe dir
+recipe_dir =
+
+# path to extra qt android .jar files to be loaded by the application
+jars_dir =
+
+# if empty, uses default ndk path downloaded by buildozer
+ndk_path =
+
+# if empty, uses default sdk path downloaded by buildozer
+sdk_path =
+
+# other libraries to be loaded at app startup. comma separated.
+local_libs =
+
+# architecture of deployed platform
+arch =

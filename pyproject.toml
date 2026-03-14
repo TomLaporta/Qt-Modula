@@ -1,0 +1,77 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "qt-modula"
+version = "1.0.0"
+description = "Qt Modula: deterministic modular workflow desktop runtime"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Qt Modula Team" }]
+dependencies = [
+  "PySide6>=6.8",
+  "numpy>=2.2",
+  "pyqtgraph>=0.13",
+  "pydantic>=2.10",
+  "httpx>=0.28",
+  "yfinance>=0.2.66",
+  "orjson>=3.10",
+  "xlsxwriter>=3.2",
+  "openpyxl>=3.1",
+  "python-docx>=1.2",
+  "sympy>=1.13",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3",
+  "pytest-cov>=6.0",
+  "ruff>=0.9",
+  "mypy>=1.14",
+]
+build = [
+  "Nuitka==2.7.11",
+  "pyinstaller>=6.11",
+  "ordered-set>=4.1",
+  "zstandard>=0.23",
+]
+
+[project.scripts]
+qt-modula = "qt_modula.app:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/qt_modula"]
+include = [
+  "src/qt_modula/assets/app_icon.svg",
+  "src/qt_modula/assets/app_icon.png",
+  "src/qt_modula/modules_builtin/math/formula_catalog.json",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = ["__pycache__", "saves", "src/qt_modula_legacy", "tests_legacy"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "C4", "PIE", "N", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/qt_modula/modules_builtin/analytics/line_plotter.py" = ["N802", "N803", "E501", "RUF046"]
+"src/qt_modula/modules_builtin/math/formula_calculator.py" = ["RUF001", "N811", "N813"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+filterwarnings = ["error"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_any_generics = true
+show_error_codes = true
+plugins = ["pydantic.mypy"]
+exclude = ["^tests/", "^src/qt_modula_legacy/"]

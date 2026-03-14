@@ -1,0 +1,27 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="1024"
+  height="1024"
+  viewBox="0 0 1024 1024"
+  fill="none"
+>
+  <title>Qt Modula app icon</title>
+  <rect x="96" y="96" width="832" height="832" rx="216" fill="#1F1F1F" />
+
+  <g opacity="0.34">
+    <rect x="312" y="248" width="404" height="148" rx="38" fill="#432475" />
+    <rect x="362" y="294" width="176" height="22" rx="11" fill="#1F1F1F" />
+    <circle cx="586" cy="305" r="11" fill="#1F1F1F" />
+  </g>
+
+  <g opacity="0.58">
+    <rect x="288" y="630" width="448" height="148" rx="38" fill="#432475" />
+    <rect x="338" y="676" width="196" height="22" rx="11" fill="#1F1F1F" />
+    <circle cx="582" cy="687" r="11" fill="#1F1F1F" />
+  </g>
+
+  <rect x="236" y="420" width="552" height="176" rx="42" fill="#432475" />
+  <rect x="300" y="472" width="236" height="24" rx="12" fill="#1F1F1F" />
+  <circle cx="592" cy="484" r="12" fill="#1F1F1F" />
+  <rect x="300" y="528" width="424" height="18" rx="9" fill="#1F1F1F" opacity="0.9" />
+</svg>

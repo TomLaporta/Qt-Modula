@@ -1,0 +1,47 @@
+{
+  "autosnapshot": {
+    "debounce_ms": 800,
+    "enabled": true,
+    "max_history": 50
+  },
+  "paths": {
+    "autosnapshot_directory": null,
+    "export_directory": null,
+    "project_directory": null
+  },
+  "provider_network": {
+    "http": {
+      "backoff_s": 0.15,
+      "min_gap_s": 0.0,
+      "proxy_url": "",
+      "retries": 2,
+      "timeout_s": 10.0
+    },
+    "yfinance": {
+      "backoff_s": 0.25,
+      "retries": 2
+    }
+  },
+  "runtime": {
+    "coalesce_pending_inputs": true,
+    "max_deliveries_per_batch": 250000,
+    "max_queue_size": 100000
+  },
+  "safety_prompts": {
+    "confirm_binding_remove": true,
+    "confirm_canvas_delete": true,
+    "confirm_load_over_unsaved": true,
+    "confirm_module_remove": true,
+    "confirm_workspace_reset": true
+  },
+  "ui": {
+    "custom_theme": {
+      "canvas_color": "#141414",
+      "highlight_color": "#432475",
+      "primary_color": "#1F1F1F",
+      "secondary_color": "#DDD5EB"
+    },
+    "theme": "default"
+  },
+  "version": "AppConfig"
+}
