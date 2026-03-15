@@ -1,10 +1,10 @@
 # Runtime Contracts
 
-This reference describes the contracts between modules, the runtime scheduler, and the async service layer.
+This document defines canonical contracts between modules, runtime scheduling, and async service workflows.
 
 ## Module Identity Contract
 
-`ModuleDescriptor` defines a module's runtime identity and I/O contract.
+`ModuleDescriptor` is the authoritative runtime identity and I/O contract.
 
 ```python
 ModuleDescriptor(
@@ -31,7 +31,7 @@ Supported tags:
 
 ## Port Contract
 
-`PortSpec` defines a port's payload type, plane, and bind-panel metadata.
+`PortSpec` declares typed lane behavior and bind-surface metadata.
 
 ```python
 PortSpec(
@@ -64,7 +64,7 @@ Rule: if `control_plane=True`, effective `plane` is forced to `control`.
 
 ### Coercion Semantics
 
-`ModuleBase.receive_binding(...)` applies strict coercion before `on_input(...)`:
+`BaseModule.receive_binding(...)` applies strict coercion before `on_input(...)`:
 
 - `trigger` / `pulse`: normalized to `0` or `1`
 - `boolean`: deterministic truthy parsing (`"1"`, `"true"`, `"yes"`, `"on"` are true)
@@ -161,7 +161,7 @@ Last drain telemetry is exposed as `RuntimeBatch`.
 
 ## Module Lifecycle Contract
 
-Modules implement `ModuleLifecycle` (typically via `ModuleBase`):
+Modules implement `ModuleLifecycle` (typically via `BaseModule`):
 
 - `attach_execution_context(context)`
 - `widget()`
@@ -171,7 +171,7 @@ Modules implement `ModuleLifecycle` (typically via `ModuleBase`):
 - `replay_state()`
 - `on_close()`
 
-`ModuleBase` provides:
+`BaseModule` provides:
 
 - descriptor-based port indexing
 - typed input/output storage

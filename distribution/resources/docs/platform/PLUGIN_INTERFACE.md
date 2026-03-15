@@ -1,15 +1,16 @@
 # Plugin Interface
 
-Qt Modula v1 loads local plugins from the `modules/` directory in the current distribution folder.
+Qt Modula v1 supports local plugins loaded from the external `modules/` directory under the active app root.
 
-Qt Modula resolves that root in the following order:
+App root resolution:
 
+- packaged build: external directory containing the deployed app payload
+- source run: repository root
 - override: `QT_MODULA_HOME=/absolute/path`
-- default distribution root: folder containing `qt-modula.app`, `modules/`, `saves/`, and `resources/`
 
 ## Discovery
 
-Qt Modula checks these locations in order:
+Loader checks in deterministic order:
 
 - `modules/*.py`
 - `modules/*/plugin.py`
@@ -35,8 +36,6 @@ def register(registry):
 - has class-level `descriptor: ModuleDescriptor`
 - implements `widget()` and `on_input(...)`
 - follows persistence and error/output conventions
-
-Start from `resources/module_template.py` if you want a working baseline that matches the shipped plugin contract.
 
 ## Loader Behavior
 
@@ -64,4 +63,4 @@ Plugin API major version is strict.
 
 ## Security
 
-Plugins run in-process and are trusted code. Review plugin code before placing it in `modules/`.
+Plugins run in-process and are trusted code. Use source review and controlled distribution practices.

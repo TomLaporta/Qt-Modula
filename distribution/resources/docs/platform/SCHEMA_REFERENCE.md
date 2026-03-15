@@ -1,12 +1,12 @@
 # Schema Reference
 
-This reference covers the settings and project files that Qt Modula reads and writes.
+This document defines persistence payloads accepted by Qt Modula.
 
-Schemas use `extra="forbid"`, so unknown fields are rejected.
+All schema models are strict (`extra="forbid"`). Unknown fields are rejected.
 
 ## App Settings Schema
 
-`AppConfig` stores application settings.
+`AppConfig` stores application-level policy.
 
 ```text
 AppConfig
@@ -90,8 +90,9 @@ Desktop entrypoint resolves settings path as:
 
 `app_root` resolution policy:
 
+- packaged build: external directory containing the deployed app payload
+- source run: repository root
 - override: `QT_MODULA_HOME=/absolute/path`
-- default distribution root: folder containing `qt-modula.app`, `modules/`, `saves/`, and `resources/`
 
 ## Project Schema
 

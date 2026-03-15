@@ -1,14 +1,14 @@
 # Module Authoring Guide
 
-Use this guide when you are adding a Qt Modula module to this distribution as a local plugin.
+This guide defines the canonical workflow for implementing first-party Qt Modula modules.
 
-It is not meant to be a spec for every possible module. It is the practical path that matches how the shipped modules already work.
+It is based on a scan of all current first-party module implementations.
 
-## What Existing Modules Have In Common
+## Baseline Observations from Current Modules
 
-Most shipped modules follow the same shape:
+Across all registered first-party modules (`40` total), the shared baseline is consistent:
 
-- every module subclasses `ModuleBase`
+- every module subclasses `BaseModule`
 - every module defines a class-level `descriptor: ModuleDescriptor`
 - every module implements `__init__(module_id)`, `widget()`, and `on_input(port, value)`
 - every module publishes `text` and `error` outputs
@@ -16,17 +16,17 @@ Most shipped modules follow the same shape:
 - modules with external/background resources implement `on_close()` cleanup
 - modules that must republish state after project load implement `replay_state()`
 
-If you stay close to this pattern, the module will fit the runtime, persistence layer, and UI without surprises.
+Use this as the minimum engineering contract.
 
 ## Start from the Template
 
-Start with:
+Use:
 
 - `resources/module_template.py`
 
-Copy it, rename the class and module metadata, then remove anything you do not need.
+Copy it, rename the class/module identity fields, then iterate from there.
 
-The template already handles the parts that are easy to get wrong:
+Template guarantees you start with:
 
 - strict descriptor contract
 - persistence baseline
@@ -34,19 +34,13 @@ The template already handles the parts that are easy to get wrong:
 - clear state publication pattern
 - replay and cleanup hooks
 
-## Choose the Extension Path
+## Authoring Progression
 
-If you are extending the shipped distribution, prefer a local plugin in `modules/`.
-
-Keep custom work outside of the executable. If you maintain the application's internals in a separate development repository, make those changes there and then rebuild the distribution.
-
-## Build In This Order
-
-This order keeps the work simple and avoids UI/runtime drift.
+Implement modules in this order.
 
 ### 1. Define Contract First
 
-Write the descriptor before you write behavior:
+Populate descriptor fields before writing behavior:
 
 - `module_type`: stable persisted id
 - `display_name`: operator-facing name
@@ -54,23 +48,23 @@ Write the descriptor before you write behavior:
 - `description`: concise behavior statement
 - `inputs` and `outputs`: full `PortSpec` tuples
 
-A few contract rules help:
+Port-level standards:
 
 - use `control_plane=True` for trigger/pulse lanes
 - keep defaults deterministic and explicit
 - use `bind_visibility="advanced"` only for expert knobs
 - use `bind_visibility="hidden"` sparingly for non-bindable internals
 
-### Naming Conventions
+### Contract Naming Conventions
 
-Keep port names predictable:
+Keep contracts predictable across module families:
 
 - prefer concise lowercase snake_case port keys
 - use verbs for control inputs (`emit`, `fetch`, `clear`, `reset`, `write`)
 - use nouns for data outputs (`rows`, `record`, `value`, `path`)
 - keep summary/diagnostic ports standardized (`text`, `error`)
 
-### 2. Decide What To Persist
+### 2. Choose Persistence Intentionally
 
 `persistent_inputs` should contain only stable user intent.
 
@@ -85,7 +79,7 @@ Do not persist:
 - derived outputs
 - ephemeral runtime counters
 
-`ModuleBase.restore_inputs(...)` expects an exact key match with `persistent_inputs`, so loose persistence rules will break reload behavior.
+Remember: `BaseModule.restore_inputs(...)` enforces exact key match with `persistent_inputs`.
 
 ### 3. Build UI as a Projection of Inputs
 
@@ -96,7 +90,7 @@ In `widget()`:
 - use shared UI helpers (`apply_layout_defaults`, `set_control_height`, `set_expand`)
 - include a status label for operator diagnostics
 
-Keep the widget in sync with runtime state:
+UI consistency rules:
 
 - block signals when synchronizing controls from runtime updates
 - keep core controls visible
@@ -111,26 +105,26 @@ In `on_input(...)`:
 - synchronize affected controls with signal blocking
 - publish outputs through a single helper (for example `_publish_state(...)`)
 
-For trigger-style inputs:
+Trigger-port handling pattern:
 
 - check with `is_truthy(value)`
 - avoid side effects when trigger input is falsey
 
-For validation:
+Validation pattern:
 
 - clamp/reject invalid operational configuration deterministically
 - publish actionable errors to `error` output
 
 ### 5. Centralize Output Publication
 
-Use one internal helper to publish state:
+Use one internal method to emit coherent state:
 
 - payload outputs (domain values)
 - pulse outputs (`changed`, `fetched`, `wrote`, etc.)
 - `text` summary
 - `error` message
 
-That gives you:
+Benefits:
 
 - deterministic output ordering
 - easier replay implementation
@@ -140,13 +134,13 @@ That gives you:
 
 #### `replay_state()`
 
-Implement this when downstream modules need the current state to be republished after a project loads.
+Implement when downstream chains need the module to republish current outputs after project load.
 
-It should republish state, not perform fresh side effects.
+Use it to emit current state only; do not perform uncontrolled side effects.
 
 #### `on_close()`
 
-Implement this when the module owns anything that must be shut down cleanly, such as timers, worker threads, clients, or files.
+Implement when the module owns resources (threads, timers, clients, files).
 
 Examples:
 
@@ -156,7 +150,7 @@ Examples:
 
 ### 7. Extend for Async Work (When Needed)
 
-For provider, export, or network modules:
+For provider/export/network modules:
 
 - run background work via `AsyncServiceRunner`
 - wrap service calls with `capture_service_result(...)`
@@ -164,7 +158,7 @@ For provider, export, or network modules:
 - expose deterministic `busy` state
 - clear stale success outputs on failure
 
-Keep these rules in place:
+Required async invariants:
 
 - no concurrent duplicate run if already busy
 - all exit paths clear busy
@@ -172,7 +166,7 @@ Keep these rules in place:
 
 ### 8. Extend for Dynamic Ports (When Needed)
 
-Use dynamic ports only when a fixed port list would make the workflow clumsy or misleading.
+Use dynamic ports only when static contracts cannot model operator workflow cleanly.
 
 Requirements:
 
@@ -183,16 +177,16 @@ Requirements:
 
 Never generate dynamic keys from randomness, timestamps, or external non-persisted state.
 
-### Status And Error Text
+### Error and Status Language Standards
 
-Operator-facing text should stay short, stable, and useful:
+Keep operator-facing language deterministic and actionable:
 
 - use short status summaries (`reason=...`, `rows=...`, `mode=...`)
 - avoid noisy text churn when state has not materially changed
 - keep `error` empty (`""`) on healthy state
 - include fallback behavior in warnings (`invalid mode 'x'; using 'overwrite'`)
 
-### Performance And Memory
+### Performance and Memory Baseline
 
 For high-rate modules:
 
@@ -201,9 +195,9 @@ For high-rate modules:
 - keep retained state bounded (for example max rows, max points)
 - avoid blocking calls in `on_input(...)`; use async runner for I/O
 
-### Test Shape
+### Minimal Test Skeleton
 
-If you also maintain a development workspace, this is a good minimum test shape:
+Use this test structure for new modules:
 
 1. descriptor contract test (port keys, kinds, planes, defaults)
 2. input coercion/validation test (happy + invalid cases)
@@ -211,9 +205,9 @@ If you also maintain a development workspace, this is a good minimum test shape:
 4. persistence roundtrip test (`snapshot_inputs`/`restore_inputs`)
 5. replay/cleanup tests when implemented
 
-## Shipping Checklist
+## Mandatory Baseline Checklist
 
-Before shipping a module:
+Before registering a module:
 
 1. descriptor is complete and accurate
 2. `persistent_inputs` contains only stable intent
@@ -221,11 +215,11 @@ Before shipping a module:
 4. `on_input(...)` handles each declared input intentionally
 5. module emits `text` and `error` consistently
 6. replay/close hooks are implemented when needed
-7. deterministic behavior is validated before packaging
+7. deterministic behavior is validated by tests
 
-## Additional Test Coverage
+## Testing Matrix
 
-If you keep an automated test suite, cover at minimum:
+At minimum, add tests for:
 
 1. descriptor contract correctness
 2. coercion/validation behavior on inputs
@@ -236,33 +230,29 @@ If you keep an automated test suite, cover at minimum:
 7. resource cleanup if `on_close()` is implemented
 8. dynamic port regeneration + project-load behavior (if applicable)
 
-## Wire It Into The Distribution
+## Registration and Documentation Workflow
 
 After implementation:
 
-1. If this is a local plugin, place it in `modules/<name>.py` or `modules/<name>/plugin.py` and expose `API_VERSION = "1"` plus `register(registry)`.
-2. Update `resources/docs/modules/MODULE_CATALOG.md` if the module is part of the package you are redistributing.
-3. Add or update the module-specific doc in `resources/docs/modules/` when recipients need a reference for it.
-4. Update platform docs for contract or persistence changes that affect recipients:
+1. register built-in modules in `src/qt_modula/modules_builtin/registry.py` (or expose plugins through the `src/qt_modula/modules` compatibility/plugin surface as appropriate)
+2. update `resources/docs/modules/MODULE_CATALOG.md`
+3. add/update module-specific doc in `resources/docs/modules/`
+4. update platform docs for contract changes:
    - `resources/docs/platform/ARCHITECTURE.md`
    - `resources/docs/platform/RUNTIME_CONTRACTS.md`
    - `resources/docs/platform/SCHEMA_REFERENCE.md`
 
-This package does not expose an editable built-in module registry. If you need to change bundled internals, do that work in your development repository and ship a new package.
+## Quality Gate Before PR
 
-## Final Validation
+Run:
 
-Before you redistribute the package, confirm the following in the app itself:
+```bash
+QT_QPA_PLATFORM=offscreen python3 resources/scripts/run_quality_gate.py
+```
 
-1. the module appears in the palette or plugin load succeeds cleanly
-2. persisted inputs save and restore correctly
-3. `text` and `error` outputs stay deterministic and useful
-4. replay does not trigger uncontrolled side effects
-5. cleanup logic releases timers, workers, and external resources
+If your change affects module behavior, include exact command outputs in the PR summary.
 
-If you maintain the full development tree elsewhere, run your normal test and lint pipeline there before packaging the updated distribution.
-
-## Common Mistakes
+## Anti-Patterns to Avoid
 
 - implicit behavior not represented in descriptor ports
 - non-deterministic output wording or ordering

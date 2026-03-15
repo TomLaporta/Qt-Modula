@@ -1,6 +1,6 @@
 # Qt Modula
 
-Qt Modula is a deterministic desktop workflow runtime for modular bind chains.
+Qt Modula is a deterministic desktop workflow runtime for modular bind chains. Built with Qt/PySide6.
 
 Version `1.0.0` is a platform-first release focused on a stable core architecture:
 

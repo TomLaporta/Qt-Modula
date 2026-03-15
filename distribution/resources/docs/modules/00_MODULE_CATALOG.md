@@ -1,10 +1,10 @@
 # Module Catalog
 
-This catalog is the index for the built-in module reference set shipped in this distribution.
+This catalog is the index for the built-in module reference set.
 
 - built-in modules in the current registry: `40`
 - module doc pages in this folder: `40`
-- implementation source in the development tree: `src/qt_modula/modules_builtin/`
+- implementation source: `src/qt_modula/modules_builtin/`
 
 Detailed contracts, runtime notes, and examples live in each module page. This catalog stays intentionally concise so it does not drift from those per-module references.
 

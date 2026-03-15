@@ -1,41 +1,39 @@
 # Architecture
 
-Qt Modula is organized in a small set of layers, each with a clear job.
-
-This document describes the shipped application conceptually rather than as a source-tree map.
+Qt Modula is organized as strict layers with narrow responsibilities and deterministic boundaries.
 
 ## Layer Model
 
-### SDK
+### SDK (`src/qt_modula/sdk`)
 
 - canonical contracts (`ModuleDescriptor`, `PortSpec`, `BindingEdge`, runtime failure/result types)
-- `ModuleBase` typed input/output handling, persistence snapshot discipline
+- `BaseModule` typed input/output handling, persistence snapshot discipline
 - shared async helpers (`AsyncServiceRunner`, background runner, async error policy)
 
-### Runtime
+### Runtime (`src/qt_modula/runtime`)
 
 - module registration and contract indexing
 - binding diagnostics (`error` + `warning` + `info`) and strict cycle rejection
 - deterministic delivery scheduling with queue/coalescing/batch controls
 - dynamic contract refresh (`refresh_module_contract`) and listener notifications
 
-### Modules
+### Modules (`src/qt_modula/modules_builtin`, with `src/qt_modula/modules` as a compatibility shim)
 
-- built-in workflow modules grouped by family
+- first-party workflow modules grouped by family
 - module-local behavior only (no persistence I/O, no scheduler mutation internals)
 
-### Services
+### Services (`src/qt_modula/services`)
 
 - HTTP/provider/export side-effect implementations
 - normalized service error taxonomy and result envelopes
 
-### Persistence
+### Persistence (`src/qt_modula/persistence`)
 
 - strict Pydantic schemas (`extra="forbid"`)
 - deterministic JSON read/write (`sorted keys`, `indented`, atomic replace)
 - current-contract-only version validation
 
-### UI
+### UI (`src/qt_modula/ui`)
 
 - desktop shell, module palette, multi-canvas workspace
 - bind inspection and strict candidate diagnostics before edge creation
