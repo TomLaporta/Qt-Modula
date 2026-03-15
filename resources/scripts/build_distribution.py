@@ -49,6 +49,9 @@ MACOS_NUITKA_REQUIRED_PACKAGES = (
     "xlsxwriter",
 )
 MACOS_NUITKA_OPTIONAL_PACKAGES = (
+    "dateutil",
+    "pandas",
+    "pytz",
     "yfinance",
 )
 MACOS_NUITKA_DEPENDENCY_PACKAGES = (
@@ -65,13 +68,21 @@ MACOS_NUITKA_DEPENDENCY_PACKAGES = (
     "multitasking",
     "platformdirs",
     "pydantic_core",
+    "requests",
     "sniffio",
+    "soupsieve",
     "typing_inspection",
+    "urllib3",
     "websockets",
 )
 MACOS_NUITKA_OPTIONAL_MODULES = (
     "google.protobuf.json_format",
+    "pandas._libs._cyutility",
+    "pandas._libs.pandas_datetime",
+    "pandas._libs.pandas_parser",
     "peewee",
+    "charset_normalizer",
+    "six",
     "sympy",
     "sympy.parsing.sympy_parser",
     "typing_extensions",
