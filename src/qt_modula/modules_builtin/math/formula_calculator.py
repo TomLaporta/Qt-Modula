@@ -59,6 +59,7 @@ _TOKEN_RE = re.compile(
     r"(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?|"
     r"[A-Za-z_][A-Za-z0-9_]*|[()+\-*/^=,%]"
 )
+_SYMPY_IMPORT_ERROR: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -105,8 +106,9 @@ try:
 
     _SYMPY_AVAILABLE = True
     _SYMPY_TRANSFORMS = (*_sym_std_t, _sym_implicit, _sym_convert_xor)
-except Exception:
+except Exception as exc:
     _SYMPY_AVAILABLE = False
+    _SYMPY_IMPORT_ERROR = f"{type(exc).__name__}: {exc}"
 
 
 @lru_cache(maxsize=1)
@@ -495,7 +497,10 @@ def _parse_assignments(text: str) -> dict[str, float]:
 
 def _symbolic_solve(formula: str, solve_for: str, env: dict[str, float]) -> list[complex]:
     if not _SYMPY_AVAILABLE:
-        raise ValueError("sympy unavailable")
+        message = "sympy unavailable"
+        if _SYMPY_IMPORT_ERROR:
+            message = f"{message}: {_SYMPY_IMPORT_ERROR}"
+        raise ValueError(message)
     if not _is_identifier(solve_for):
         raise ValueError(f"Invalid solve_for variable name: '{solve_for}'.")
 

@@ -14,10 +14,13 @@ from qt_modula.services.errors import ServiceError
 from qt_modula.services.http import HttpClient
 from qt_modula.services.settings_state import current_provider_network
 
+_YFINANCE_IMPORT_ERROR: str | None = None
+
 try:
     import yfinance as yf  # type: ignore[import-untyped]
-except Exception:
+except Exception as exc:
     yf = None
+    _YFINANCE_IMPORT_ERROR = f"{type(exc).__name__}: {exc}"
 
 
 @dataclass(frozen=True, slots=True)
@@ -238,9 +241,12 @@ def _extract_string(source: object, keys: tuple[str, ...]) -> str:
 
 def _require_yfinance() -> Any:
     if yf is None:
+        message = "yfinance dependency is unavailable."
+        if _YFINANCE_IMPORT_ERROR:
+            message = f"{message} Import failed with {_YFINANCE_IMPORT_ERROR}."
         raise ServiceError(
             kind="unknown",
-            message="yfinance dependency is unavailable.",
+            message=message,
             provider="yfinance",
             retryable=False,
         )

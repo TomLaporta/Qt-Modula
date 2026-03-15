@@ -63,7 +63,7 @@ macos.permissions =
 mode = standalone
 
 # specify any extra nuitka arguments
-extra_args = --quiet --noinclude-qt-translations --include-package-data=qt_modula --disable-cache=ccache --include-module=PySide6.QtOpenGL
+extra_args = __NUITKA_EXTRA_ARGS__
 
 [buildozer]
 

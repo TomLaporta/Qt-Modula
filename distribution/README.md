@@ -1,6 +1,6 @@
 # Qt Modula
 
-Qt Modula is a deterministic desktop workflow runtime for modular bind chains.
+Qt Modula is a deterministic desktop workflow runtime for modular bind chains. Built with Qt/PySide6.
 
 Version `1.0.0` is a platform-first release focused on a stable core architecture:
 
@@ -113,10 +113,10 @@ py -3.11 -m qt_modula.app
 
 ## Production Packaging
 
-Production packaging uses the platform-native backend:
+Production packaging uses the platform-specific backend:
 
-- macOS/Linux: `pyside6-deploy` in `standalone` mode
-- Windows: PyInstaller in `--onefile` mode
+- macOS: `pyside6-deploy` in `standalone` mode
+- Windows/Linux: PyInstaller in `--onefile` mode
 
 Local build prerequisites:
 
@@ -149,7 +149,7 @@ chmod +x build_linux.sh
 ./build_linux.sh
 ```
 
-This helper auto-selects Python `3.11` to `3.13`, runs the Linux packaging path, stages the final
+This helper auto-selects Python `3.11` to `3.13`, runs the Linux PyInstaller packaging path, stages the final
 `distribution/` folder, and pauses so build output stays visible.
 
 Windows developer helper:
@@ -179,9 +179,13 @@ py -3.11 resources/scripts/stage_distribution.py
 
 Output:
 
-- macOS/Linux build output: `build/pyside6-deploy/output/`
-- Windows build output: `build/pyinstaller-dist/`
+- macOS build output: `build/pyside6-deploy/output/`
+- Windows/Linux build output: `build/pyinstaller-dist/`
 - staged distribution: `distribution/`
+
+Linux note:
+
+- use the repository build wrapper instead of calling raw `pyside6-deploy`; the Qt wrapper duplicates the standalone payload during finalize and can fail with `No space left on device`
 
 The build step refreshes the generated platform icon assets under `resources/assets/` from
 `src/qt_modula/assets/app_icon.svg`.
@@ -211,7 +215,7 @@ Runtime behavior in packaged builds:
 Release process guide:
 
 - `resources/docs/guides/RELEASE_PACKAGING.md`
-- use Python `3.11`, `3.12`, or `3.13` for release packaging; `3.14` is not yet supported on the macOS/Linux Nuitka path
+- use Python `3.11`, `3.12`, or `3.13` for macOS release packaging; the current macOS Nuitka path does not yet support `3.14`
 
 ## Quality Gate
 
