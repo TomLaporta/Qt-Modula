@@ -96,11 +96,11 @@ Desktop entrypoint resolves settings path as:
 
 ## Project Schema
 
-`ProjectV2` is the only accepted workflow snapshot payload.
+`ProjectV1` is the only accepted workflow snapshot payload.
 
 ```text
 Project
-  version: "ProjectV2"
+  version: "ProjectV1"
   runtime: RuntimePolicy
   canvases: list[CanvasSnapshot]
   bindings: list[BindingSnapshot]
@@ -129,7 +129,7 @@ Project
 ### Loader Rules (`load_project`)
 
 - Root payload must be an object.
-- `version` must be exactly `"ProjectV2"`.
+- `version` must be exactly `"ProjectV1"`.
 - Schema violations raise deterministic `PersistenceError`.
 
 ### Writer Rules (`save_project`, `save_app_config`)
@@ -162,7 +162,7 @@ For modules with dynamic bind ports:
 
 ```json
 {
-  "version": "ProjectV2",
+  "version": "ProjectV1",
   "runtime": {
     "max_queue_size": 100000,
     "coalesce_pending_inputs": true,

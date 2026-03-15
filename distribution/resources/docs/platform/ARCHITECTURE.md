@@ -138,7 +138,7 @@ Shutdown behavior is part of the contract:
 Accepted payload identities:
 
 - app settings: `AppConfig`
-- project snapshots: `ProjectV2`
+- project snapshots: `ProjectV1`
 
 No compatibility fallback loader is used. Version mismatches are rejected explicitly.
 

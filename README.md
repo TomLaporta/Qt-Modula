@@ -44,7 +44,7 @@ The first-party module set includes `40` built-ins across the platform families:
 Qt Modula uses strict current-contract loading only:
 
 - settings payload version must be `AppConfig`
-- project payload version must be `ProjectV2`
+- project payload version must be `ProjectV1`
 - persisted module input keys must match each module's current `persistent_inputs`
 - unknown modules and invalid bindings are rejected
 - no migration layer and no legacy compatibility fallback

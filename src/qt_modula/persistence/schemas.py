@@ -175,7 +175,7 @@ class BindingSnapshot(_StrictModel):
 class Project(_StrictModel):
     """Project payload schema."""
 
-    version: Literal["ProjectV2"] = "ProjectV2"
+    version: Literal["ProjectV1"] = "ProjectV1"
     project_id: str = Field(default="workspace", min_length=1, max_length=64)
     runtime: RuntimePolicyModel = Field(default_factory=RuntimePolicyModel)
     canvases: list[CanvasSnapshot] = Field(default_factory=list)

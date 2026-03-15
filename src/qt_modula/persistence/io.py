@@ -71,8 +71,8 @@ def save_app_config(path: Path, config: AppConfig) -> None:
 def load_project(path: Path) -> Project:
     """Load project with strict current-contract validation."""
     raw = _read_json(path)
-    if raw.get("version") != "ProjectV2":
-        raise PersistenceError("Unsupported project format. Only ProjectV2 is accepted.")
+    if raw.get("version") != "ProjectV1":
+        raise PersistenceError("Unsupported project format. Only ProjectV1 is accepted.")
 
     try:
         return Project.model_validate(raw)
