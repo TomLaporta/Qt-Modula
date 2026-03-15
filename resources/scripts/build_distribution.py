@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import shlex
 import shutil
 import subprocess
 import sys
@@ -17,6 +18,8 @@ PYINSTALLER_DIST_ROOT = REPO_ROOT / "build" / "pyinstaller-dist"
 PYSIDE_BUILD_ROOT = REPO_ROOT / "build" / "pyside6-deploy"
 PYSIDE_EXEC_DIRECTORY = PYSIDE_BUILD_ROOT / "output"
 PYSIDE_SOURCE_DIRECTORY = PYSIDE_BUILD_ROOT / "source"
+PYINSTALLER_SPEC_TEMPLATE = REPO_ROOT / "packaging" / "pyinstaller.spec.in"
+PYINSTALLER_RENDERED_SPEC = PYINSTALLER_BUILD_ROOT / "spec" / f"{APP_NAME}.spec"
 SPEC_TEMPLATE = REPO_ROOT / "packaging" / "pyside6-deploy.spec.in"
 RENDERED_SPEC = REPO_ROOT / "pysidedeploy.spec"
 INPUT_FILE = REPO_ROOT / "main.py"
@@ -30,6 +33,10 @@ ICON_PATHS = {
     "win32": ASSETS_ROOT / "windows" / "app_icon.ico",
     "linux": ASSETS_ROOT / "linux" / "app_icon.png",
 }
+
+
+def _uses_pyinstaller_backend() -> bool:
+    return sys.platform != "darwin"
 
 
 def _reset_directory(path: Path) -> None:
@@ -64,7 +71,7 @@ def _icon_path() -> Path:
 
 
 def _ensure_supported_python(*, dry_run: bool) -> None:
-    if dry_run or sys.platform == "win32":
+    if dry_run or _uses_pyinstaller_backend():
         return
     if sys.version_info >= (3, 14):
         version = ".".join(str(part) for part in sys.version_info[:3])
@@ -122,6 +129,25 @@ def _render_pyside_spec() -> Path:
     return RENDERED_SPEC
 
 
+def _render_pyinstaller_spec() -> Path:
+    spec_dir = PYINSTALLER_RENDERED_SPEC.parent
+    spec_dir.mkdir(parents=True, exist_ok=True)
+    rendered = PYINSTALLER_SPEC_TEMPLATE.read_text(encoding="utf-8")
+    icon_arg = ""
+    if sys.platform == "win32":
+        icon_arg = f"    icon=[{_icon_path().resolve().as_posix()!r}],\n"
+    replacements = {
+        "__APP_NAME__": APP_NAME,
+        "__INPUT_FILE__": INPUT_FILE.resolve().as_posix(),
+        "__SRC_PATH__": (REPO_ROOT / "src").resolve().as_posix(),
+        "__ICON_ARG__": icon_arg,
+    }
+    for key, value in replacements.items():
+        rendered = rendered.replace(key, value)
+    PYINSTALLER_RENDERED_SPEC.write_text(rendered, encoding="utf-8")
+    return PYINSTALLER_RENDERED_SPEC
+
+
 def _pyside_build_command(*, dry_run: bool, verbose: bool) -> list[str]:
     command = [
         _deploy_executable(),
@@ -149,34 +175,16 @@ def _pyinstaller_build_command(*, dry_run: bool, verbose: bool) -> list[str]:
         "PyInstaller",
         "--noconfirm",
         "--clean",
-        "--onefile",
-        "--windowed",
-        "--name",
-        APP_NAME,
         "--distpath",
         str(PYINSTALLER_DIST_ROOT),
         "--workpath",
         str(PYINSTALLER_BUILD_ROOT / "work"),
-        "--specpath",
-        str(PYINSTALLER_BUILD_ROOT / "spec"),
-        "--paths",
-        str(REPO_ROOT / "src"),
-        "--collect-data",
-        "qt_modula",
-        "--hidden-import",
-        "PySide6.QtOpenGL",
-        "--hidden-import",
-        "qt_modula.app",
-        "--hidden-import",
-        "qt_modula.paths",
-        "--icon",
-        str(_icon_path()),
-        str(INPUT_FILE),
+        str(_render_pyinstaller_spec()),
     ]
     if verbose:
         cmd.append("--log-level=DEBUG")
     if dry_run:
-        print(" ".join(cmd))
+        print(" ".join(shlex.quote(part) for part in cmd))
         return []
     return cmd
 
@@ -185,7 +193,7 @@ def _cleanup_transient_artifacts() -> None:
     _remove_tree(PYSIDE_SOURCE_DIRECTORY)
 
 
-def _build_windows(*, dry_run: bool, verbose: bool) -> int:
+def _build_pyinstaller(*, dry_run: bool, verbose: bool) -> int:
     command = _pyinstaller_build_command(dry_run=dry_run, verbose=verbose)
     if dry_run:
         return 0
@@ -212,8 +220,8 @@ def main() -> int:
     _generate_icon_assets()
     _ensure_supported_python(dry_run=args.dry_run)
 
-    if sys.platform == "win32":
-        return _build_windows(dry_run=args.dry_run, verbose=args.verbose)
+    if _uses_pyinstaller_backend():
+        return _build_pyinstaller(dry_run=args.dry_run, verbose=args.verbose)
     return _build_non_windows(dry_run=args.dry_run, verbose=args.verbose)
 
 

@@ -1,0 +1,55 @@
+# -*- mode: python ; coding: utf-8 -*-
+from pathlib import Path
+
+from PyInstaller.utils.hooks import collect_data_files
+
+datas = []
+datas += collect_data_files("qt_modula")
+
+
+def _only_files(entries, label):
+    invalid_entries = [entry for entry in entries if entry[1] and not Path(entry[1]).is_file()]
+    if invalid_entries:
+        print(f"[pyinstaller] Dropping non-file {label} entries: {invalid_entries!r}")
+    return [entry for entry in entries if not entry[1] or Path(entry[1]).is_file()]
+
+
+a = Analysis(
+    [r"__INPUT_FILE__"],
+    pathex=[r"__SRC_PATH__"],
+    binaries=[],
+    datas=datas,
+    hiddenimports=["PySide6.QtOpenGL", "qt_modula.app", "qt_modula.paths"],
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[],
+    excludes=["mypy", "mypyc", "pytest", "_pytest"],
+    noarchive=False,
+    optimize=0,
+)
+
+a.binaries = _only_files(a.binaries, "binary")
+a.datas = _only_files(a.datas, "data")
+
+pyz = PYZ(a.pure)
+
+exe = EXE(
+    pyz,
+    a.scripts,
+    a.binaries,
+    a.datas,
+    [],
+    name="__APP_NAME__",
+    debug=False,
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    runtime_tmpdir=None,
+    console=False,
+    disable_windowed_traceback=False,
+    argv_emulation=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+__ICON_ARG__)

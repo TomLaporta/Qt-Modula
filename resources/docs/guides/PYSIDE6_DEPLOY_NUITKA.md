@@ -8,12 +8,14 @@ It is not a generic Qt-for-Python guide. It documents the release path this repo
 
 For Qt Modula:
 
-- use `pyside6-deploy` on macOS and Linux
-- use PyInstaller `--onefile` on Windows
+- use `pyside6-deploy` on macOS
+- use PyInstaller `--onefile` on Windows and Linux
 - build natively on each target OS
-- use raw Nuitka only for debugging or when `pyside6-deploy` needs help on macOS/Linux
+- use raw Nuitka only for debugging or when `pyside6-deploy` needs help on macOS
 
-Do not use `onefile` for macOS or Linux production builds of this app. Windows is the exception because the cleaner single-file executable is a better fit for the expected portable folder layout there.
+Do not use `onefile` for macOS production builds of this app. Linux and Windows use the repository
+PyInstaller wrapper because it avoids the extra standalone tree copy performed by
+`pyside6-deploy`.
 
 ## Runtime Layout
 
@@ -30,6 +32,7 @@ The app keeps user-facing data outside the bundle itself.
 
 - entrypoint: `main.py`
 - deploy spec template: `packaging/pyside6-deploy.spec.in`
+- PyInstaller spec template: `packaging/pyinstaller.spec.in`
 - generated local spec: `pysidedeploy.spec`
 - build wrapper: `resources/scripts/build_distribution.py`
 - staging wrapper: `resources/scripts/stage_distribution.py`
@@ -43,7 +46,7 @@ Use Python `3.11`, `3.12`, or `3.13` for release packaging.
 
 Current limitation:
 
-- Nuitka `2.7.11`, which is the version used by `pyside6-deploy`, does not currently support Python `3.14`
+- Nuitka `2.7.11`, which is the version used by `pyside6-deploy`, does not currently support Python `3.14` on macOS
 
 Install build dependencies:
 
@@ -71,28 +74,29 @@ python3.11 resources/scripts/stage_distribution.py
 
 Output paths:
 
-- deploy output: `build/pyside6-deploy/output/`
+- macOS deploy output: `build/pyside6-deploy/output/`
+- Windows/Linux build output: `build/pyinstaller-dist/`
 - staged release root: `distribution/`
 
 ## What The Build Wrapper Does
 
 `resources/scripts/build_distribution.py` is the normal entry point for this repo.
 
-It does four important things that a raw `pyside6-deploy` call can miss:
+It does two different packaging jobs depending on platform:
 
-1. renders `pysidedeploy.spec` from `packaging/pyside6-deploy.spec.in`
-2. injects the current Python executable path into the rendered spec
-3. forces `standalone` mode
-4. passes repo-specific packaging flags
+1. on macOS, it renders `pysidedeploy.spec` from `packaging/pyside6-deploy.spec.in`, injects the current Python executable path, forces `standalone` mode, and passes repo-specific Nuitka flags
+2. on Windows/Linux, it runs the repo's PyInstaller `--onefile` build with the required hidden imports and package data collection
 
 Current repo-specific flags:
 
 - `--extra-modules OpenGL`
 - generated spec `extra_args` include `--include-module=PySide6.QtOpenGL`
-- build output is written under `build/pyside6-deploy/output/`
+- macOS build output is written under `build/pyside6-deploy/output/`
+- Windows/Linux build output is written under `build/pyinstaller-dist/`
 - generated packaging icons are written under `resources/assets/`
 
-On Windows, `resources/scripts/build_distribution.py` switches to PyInstaller automatically and writes the intermediate executable under `build/pyinstaller-dist/`.
+On Windows and Linux, `resources/scripts/build_distribution.py` writes the intermediate executable
+under `build/pyinstaller-dist/`.
 
 Those flags are not cosmetic. Qt Modula uses `pyqtgraph`, and `pyqtgraph` imports `PySide6.QtOpenGL` dynamically. Without that explicit include, the packaged app can boot into a `ModuleNotFoundError`.
 
@@ -102,7 +106,7 @@ Use raw Nuitka only when:
 
 - the packaged app fails and you need to isolate the failure
 - you need to test an explicit hidden import
-- you need to compare `pyside6-deploy` output with a direct Nuitka invocation
+- you need to compare macOS `pyside6-deploy` output with a direct Nuitka invocation
 
 For Qt Modula, the minimum useful direct command is:
 
@@ -127,7 +131,8 @@ python3.11 -m nuitka \
   main.py
 ```
 
-If a direct Nuitka build works and the wrapped build does not, the problem is usually in the rendered `pysidedeploy.spec` or in `pyside6-deploy` argument handling.
+If a direct Nuitka build works and the wrapped macOS build does not, the problem is usually in the
+rendered `pysidedeploy.spec` or in `pyside6-deploy` argument handling.
 
 ## Do Not Use `pyside6-deploy --init` For Normal Repo Builds
 
@@ -214,14 +219,13 @@ Important Qt Modula note:
 
 Requirements:
 
-- GCC or Clang
-- `readelf`
+- a supported PyInstaller runtime toolchain for your target distro
 - Python `3.11`, `3.12`, or `3.13`
 
 Typical Debian or Ubuntu baseline:
 
 ```bash
-sudo apt install build-essential binutils
+sudo apt install build-essential
 ```
 
 Repository build:
@@ -244,12 +248,14 @@ This helper finds a supported Python automatically, runs the same Linux packagin
 
 Expected output:
 
-- `build/pyside6-deploy/output/qt-modula.bin` or standalone payload directory
+- `build/pyinstaller-dist/qt-modula`
 - `distribution/`
 
 Important Qt Modula note:
 
 - validate on the oldest Linux environment you intend to support, not just on your build host
+- prefer the repository build wrapper over raw `pyside6-deploy`; the Qt wrapper duplicates the
+  standalone payload during finalize and can fail with `No space left on device`
 
 ## Automation Note
 
@@ -275,11 +281,24 @@ Fix:
 
 Cause:
 
-- using a single-file bundle instead of `standalone` on macOS/Linux
+- using a single-file bundle instead of `standalone` on macOS
 
 Fix:
 
-- stay on the current `pyside6-deploy` standalone path for macOS/Linux
+- stay on the current macOS `pyside6-deploy` standalone path
+
+### `No space left on device` during Linux packaging
+
+Cause:
+
+- `pyside6-deploy` builds a standalone payload and then copies that entire tree again during its
+  finalize step
+- large dependency sets can exhaust the working drive during that second copy
+
+Fix:
+
+- use `resources/scripts/build_distribution.py` so Linux goes through the repository PyInstaller path
+- stage the final folder with `resources/scripts/stage_distribution.py`
 
 ### Built app starts but cannot find user folders
 

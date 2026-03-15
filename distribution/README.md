@@ -15,6 +15,14 @@ Version `1.0.0` is a platform-first release focused on a stable core architectur
 
 Qt Modula is designed for workflows where reproducibility and explicit contracts matter more than permissive behavior. The runtime guarantees stable delivery ordering under identical graph and input state.
 
+## Buy Me a Coffee
+
+Qt Modula is an independent project built to a professional standard: deterministic behavior, explicit contracts, and careful long-term maintenance. If you value software shaped by rigor, clarity, and stewardship, you can support its continued development here:
+
+[Support Qt Modula on Buy Me a Coffee](https://buymeacoffee.com/thomaslaporta)
+
+Your support helps fund disciplined releases, documentation, packaging, and the steady polish that makes a tool trustworthy.
+
 ## Built-In Module Pack (v1)
 
 The first-party module set includes `40` built-ins across the platform families:

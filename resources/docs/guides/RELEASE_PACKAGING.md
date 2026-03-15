@@ -4,15 +4,15 @@ This guide covers the production packaging path for Qt Modula.
 
 Qt Modula uses the backend that best fits each platform:
 
-- macOS and Linux: `pyside6-deploy` in `standalone` mode
-- Windows: PyInstaller in `--onefile` mode
+- macOS: `pyside6-deploy` in `standalone` mode
+- Windows and Linux: PyInstaller in `--onefile` mode
 
 For the Qt Modula-specific packaging guide, including the Windows split and macOS/Linux Nuitka notes, see `resources/docs/guides/PYSIDE6_DEPLOY_NUITKA.md`.
 
 ## Why This Path
 
-- macOS/Linux stay on the Qt-for-Python deployment tool
-- Windows gets a cleaner end-user folder with one top-level `.exe`
+- macOS stays on the Qt-for-Python deployment tool
+- Windows and Linux get a cleaner end-user folder with one top-level executable
 - the staged release layout still preserves `modules/`, `saves/`, and `resources/`
 - generated packaging icons live under `resources/assets/`
 
@@ -41,7 +41,7 @@ chmod +x build_linux.sh
 ./build_linux.sh
 ```
 
-This helper auto-selects Python `3.11` to `3.13`, runs the Linux packaging path, stages
+This helper auto-selects Python `3.11` to `3.13`, runs the Linux PyInstaller packaging path, stages
 `distribution/`, and pauses before closing so packaging errors stay visible.
 
 Build the packaged application:
@@ -58,18 +58,18 @@ python3.11 resources/scripts/stage_distribution.py
 
 Output:
 
-- macOS/Linux build output: `build/pyside6-deploy/output/`
-- Windows build output: `build/pyinstaller-dist/`
+- macOS build output: `build/pyside6-deploy/output/`
+- Windows/Linux build output: `build/pyinstaller-dist/`
 - staged distribution: `distribution/`
 
 ## What The Build Scripts Do
 
 `resources/scripts/build_distribution.py`
 
-- renders a temporary `pyside6-deploy` config from `packaging/pyside6-deploy.spec.in`
+- renders a temporary `pyside6-deploy` config from `packaging/pyside6-deploy.spec.in` for macOS
 - stamps in the current Python executable so the checked-in template stays portable
-- runs `pyside6-deploy` in `standalone` mode on macOS/Linux
-- runs PyInstaller in `--onefile` mode on Windows
+- runs `pyside6-deploy` in `standalone` mode on macOS
+- runs PyInstaller in `--onefile` mode on Windows/Linux
 - refreshes the generated platform icon set in `resources/assets/`
 
 `build_macos.command`
@@ -92,7 +92,7 @@ Use Python `3.11`, `3.12`, or `3.13` for release packaging.
 
 Current limitation:
 
-- Nuitka `2.7.11`, which is the version used by `pyside6-deploy`, does not currently support Python `3.14` on macOS/Linux
+- Nuitka `2.7.11`, which is the version used by `pyside6-deploy`, does not currently support Python `3.14` on macOS
 
 `resources/scripts/stage_distribution.py`
 
@@ -114,5 +114,7 @@ Windows release builds now use PyInstaller, so the local developer path no longe
 
 ## Linux Note
 
-Linux portability still needs real-world validation on your target distributions. Automate builds if
-you want, but test on the oldest Linux environment you plan to support before you publish.
+Linux now uses the repository PyInstaller path because `pyside6-deploy` duplicates the standalone
+payload during its final copy step, which can exhaust disk space on scientific/data-heavy app
+bundles. Linux portability still needs real-world validation on your target distributions. Automate
+builds if you want, but test on the oldest Linux environment you plan to support before you publish.

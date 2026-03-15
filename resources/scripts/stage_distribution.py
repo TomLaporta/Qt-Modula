@@ -11,6 +11,7 @@ from _bootstrap import REPO_ROOT
 
 APP_NAME = "qt-modula"
 WINDOWS_DISPLAY_NAME = "Qt Modula.exe"
+LINUX_DISPLAY_NAME = APP_NAME
 PYSIDE_BUILD_ROOT = REPO_ROOT / "build" / "pyside6-deploy"
 PYSIDE_BUILD_OUTPUT = PYSIDE_BUILD_ROOT / "output"
 PYINSTALLER_BUILD_ROOT = REPO_ROOT / "build" / "pyinstaller"
@@ -46,8 +47,9 @@ def _copy_dir_contents(src: Path, dst: Path) -> None:
             shutil.copy2(child, target)
 
 
-def _windows_payload_path() -> Path:
-    candidate = PYINSTALLER_DIST_ROOT / f"{APP_NAME}.exe"
+def _pyinstaller_payload_path() -> Path:
+    suffix = ".exe" if sys.platform == "win32" else ""
+    candidate = PYINSTALLER_DIST_ROOT / f"{APP_NAME}{suffix}"
     if candidate.is_file():
         return candidate
     raise SystemExit(
@@ -90,8 +92,9 @@ def _stage_common_files(stage_root: Path) -> None:
         path.mkdir(parents=True, exist_ok=True)
 
 
-def _stage_windows_distribution(stage_root: Path) -> None:
-    shutil.copy2(_windows_payload_path(), stage_root / WINDOWS_DISPLAY_NAME)
+def _stage_pyinstaller_distribution(stage_root: Path) -> None:
+    display_name = WINDOWS_DISPLAY_NAME if sys.platform == "win32" else LINUX_DISPLAY_NAME
+    shutil.copy2(_pyinstaller_payload_path(), stage_root / display_name)
 
 
 def _stage_non_windows_distribution(stage_root: Path) -> None:
@@ -113,10 +116,10 @@ def _cleanup_build_artifacts() -> None:
 
 def main() -> int:
     _reset_directory(DIST_ROOT)
-    if sys.platform == "win32":
-        _stage_windows_distribution(DIST_ROOT)
-    else:
+    if sys.platform == "darwin":
         _stage_non_windows_distribution(DIST_ROOT)
+    else:
+        _stage_pyinstaller_distribution(DIST_ROOT)
     _stage_common_files(DIST_ROOT)
     _cleanup_build_artifacts()
     print(f"Distribution staged at {DIST_ROOT}")
