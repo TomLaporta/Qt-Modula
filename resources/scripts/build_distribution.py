@@ -23,7 +23,7 @@ MACOS_DEPLOY_SOURCE_DIRECTORY = MACOS_DEPLOY_BUILD_ROOT / "source"
 PYINSTALLER_SPEC_TEMPLATE = REPO_ROOT / "packaging" / "pyinstaller.spec.in"
 PYINSTALLER_RENDERED_SPEC = PYINSTALLER_BUILD_ROOT / "spec" / f"{APP_NAME}.spec"
 MACOS_DEPLOY_SPEC_TEMPLATE = REPO_ROOT / "packaging" / "pyside6-deploy.spec.in"
-MACOS_DEPLOY_RENDERED_SPEC = REPO_ROOT / "pysidedeploy.spec"
+MACOS_DEPLOY_RENDERED_SPEC = MACOS_DEPLOY_BUILD_ROOT / "pysidedeploy.spec"
 INPUT_FILE = REPO_ROOT / "main.py"
 MACOS_STAGED_INPUT_FILE = MACOS_DEPLOY_SOURCE_DIRECTORY / "main.py"
 MACOS_STAGED_PROJECT_FILE = MACOS_DEPLOY_SOURCE_DIRECTORY / "pyproject.toml"
@@ -130,6 +130,14 @@ def _icon_path() -> Path:
     return icon_path
 
 
+def _repo_relative_path(path: Path) -> str:
+    resolved_path = path.resolve()
+    try:
+        return resolved_path.relative_to(REPO_ROOT.resolve()).as_posix()
+    except ValueError:
+        return resolved_path.as_posix()
+
+
 def _ensure_supported_python(*, dry_run: bool) -> None:
     if dry_run or not _uses_macos_deploy_backend():
         return
@@ -176,11 +184,11 @@ def _render_macos_deploy_spec() -> Path:
     MACOS_DEPLOY_OUTPUT_DIRECTORY.mkdir(parents=True, exist_ok=True)
     rendered = MACOS_DEPLOY_SPEC_TEMPLATE.read_text(encoding="utf-8")
     replacements = {
-        "__PROJECT_DIR__": MACOS_DEPLOY_SOURCE_DIRECTORY.resolve().as_posix(),
-        "__INPUT_FILE__": MACOS_STAGED_INPUT_FILE.resolve().as_posix(),
-        "__EXEC_DIRECTORY__": MACOS_DEPLOY_OUTPUT_DIRECTORY.resolve().as_posix(),
+        "__PROJECT_DIR__": _repo_relative_path(MACOS_DEPLOY_SOURCE_DIRECTORY),
+        "__INPUT_FILE__": _repo_relative_path(MACOS_STAGED_INPUT_FILE),
+        "__EXEC_DIRECTORY__": _repo_relative_path(MACOS_DEPLOY_OUTPUT_DIRECTORY),
         "__PROJECT_FILE__": MACOS_STAGED_PROJECT_FILE.name,
-        "__ICON_PATH__": _icon_path().resolve().as_posix(),
+        "__ICON_PATH__": _repo_relative_path(_icon_path()),
         "__NUITKA_EXTRA_ARGS__": _macos_nuitka_extra_args(),
         "__PYTHON_PATH__": Path(sys.executable).resolve().as_posix(),
     }
@@ -245,17 +253,35 @@ def _render_pyinstaller_spec() -> Path:
     rendered = PYINSTALLER_SPEC_TEMPLATE.read_text(encoding="utf-8")
     icon_arg = ""
     if sys.platform == "win32":
-        icon_arg = f"    icon=[{_icon_path().resolve().as_posix()!r}],\n"
+        icon_arg = f"    icon=[{_repo_relative_path(_icon_path())!r}],\n"
     replacements = {
         "__APP_NAME__": APP_NAME,
-        "__INPUT_FILE__": INPUT_FILE.resolve().as_posix(),
-        "__SRC_PATH__": (REPO_ROOT / "src").resolve().as_posix(),
+        "__INPUT_FILE__": _repo_relative_path(INPUT_FILE),
+        "__SRC_PATH__": _repo_relative_path(REPO_ROOT / "src"),
         "__ICON_ARG__": icon_arg,
     }
     for key, value in replacements.items():
         rendered = rendered.replace(key, value)
     PYINSTALLER_RENDERED_SPEC.write_text(rendered, encoding="utf-8")
     return PYINSTALLER_RENDERED_SPEC
+
+
+def _macos_payload_candidates() -> tuple[Path, ...]:
+    return (
+        MACOS_DEPLOY_OUTPUT_DIRECTORY / f"{APP_NAME}.app",
+        MACOS_DEPLOY_OUTPUT_DIRECTORY / f"{APP_NAME}.dist",
+        MACOS_DEPLOY_OUTPUT_DIRECTORY / f"{APP_NAME}.bin",
+        REPO_ROOT / f"{APP_NAME}.app",
+        REPO_ROOT / f"{APP_NAME}.dist",
+        REPO_ROOT / f"{APP_NAME}.bin",
+    )
+
+
+def _find_macos_payload() -> Path | None:
+    for candidate in _macos_payload_candidates():
+        if candidate.exists():
+            return candidate
+    return None
 
 
 def _macos_build_command(*, dry_run: bool, verbose: bool) -> list[str]:
@@ -312,11 +338,23 @@ def _build_pyinstaller(*, dry_run: bool, verbose: bool) -> int:
 
 def _build_macos(*, dry_run: bool, verbose: bool) -> int:
     try:
-        return subprocess.run(
+        result = subprocess.run(
             _macos_build_command(dry_run=dry_run, verbose=verbose),
             cwd=REPO_ROOT,
             check=False,
-        ).returncode
+        )
+        if result.returncode != 0 or dry_run:
+            return result.returncode
+
+        payload = _find_macos_payload()
+        if payload is not None:
+            return 0
+
+        print("pyside6-deploy exited without a staged macOS payload.")
+        print("Expected one of:")
+        for candidate in _macos_payload_candidates():
+            print(f"  - {candidate}")
+        return 1
     finally:
         _cleanup_macos_transient_artifacts()
 

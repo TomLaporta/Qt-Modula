@@ -33,12 +33,14 @@ The app keeps user-facing data outside the bundle itself.
 - entrypoint: `main.py`
 - deploy spec template: `packaging/pyside6-deploy.spec.in`
 - PyInstaller spec template: `packaging/pyinstaller.spec.in`
-- generated local spec: `pysidedeploy.spec`
+- generated local spec: `build/pyside6-deploy/pysidedeploy.spec`
 - build wrapper: `resources/scripts/build_distribution.py`
 - staging wrapper: `resources/scripts/stage_distribution.py`
 - generated icon assets: `resources/assets/`
 
-The checked-in source of truth is `packaging/pyside6-deploy.spec.in`. The root `pysidedeploy.spec` is generated at build time and should stay out of version control.
+The checked-in source of truth is `packaging/pyside6-deploy.spec.in`. The rendered
+`build/pyside6-deploy/pysidedeploy.spec` is generated at build time and should stay out of version
+control.
 
 ## Default Build Path
 
@@ -84,7 +86,7 @@ Output paths:
 
 It does two different packaging jobs depending on platform:
 
-1. on macOS, it renders `pysidedeploy.spec` from `packaging/pyside6-deploy.spec.in`, injects the current Python executable path, forces `standalone` mode, and passes repo-specific Nuitka flags
+1. on macOS, it renders `build/pyside6-deploy/pysidedeploy.spec` from `packaging/pyside6-deploy.spec.in`, injects the current Python executable path, forces `standalone` mode, and passes repo-specific Nuitka flags
 2. on Windows/Linux, it runs the repo's PyInstaller `--onefile` build with the required hidden imports and package data collection
 
 Current repo-specific flags:
@@ -132,7 +134,7 @@ python3.11 -m nuitka \
 ```
 
 If a direct Nuitka build works and the wrapped macOS build does not, the problem is usually in the
-rendered `pysidedeploy.spec` or in `pyside6-deploy` argument handling.
+rendered `build/pyside6-deploy/pysidedeploy.spec` or in `pyside6-deploy` argument handling.
 
 ## Do Not Use `pyside6-deploy --init` For Normal Repo Builds
 
@@ -183,7 +185,7 @@ Expected output:
 Direct `pyside6-deploy` debugging command:
 
 ```bash
-pyside6-deploy -c pysidedeploy.spec --mode standalone --name qt-modula
+pyside6-deploy -c build/pyside6-deploy/pysidedeploy.spec --mode standalone --name qt-modula
 ```
 
 Important Qt Modula note:

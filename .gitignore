@@ -1,0 +1,12 @@
+# Python cache artifacts
+__pycache__/
+*.pyc
+
+# macOS Finder metadata
+.DS_Store
+
+# Root build output
+/build/
+
+# Generated deployment spec
+/pysidedeploy.spec
