@@ -138,6 +138,10 @@ def _repo_relative_path(path: Path) -> str:
         return resolved_path.as_posix()
 
 
+def _absolute_path_for_spec(path: Path) -> str:
+    return path.resolve().as_posix()
+
+
 def _ensure_supported_python(*, dry_run: bool) -> None:
     if dry_run or not _uses_macos_deploy_backend():
         return
@@ -253,11 +257,11 @@ def _render_pyinstaller_spec() -> Path:
     rendered = PYINSTALLER_SPEC_TEMPLATE.read_text(encoding="utf-8")
     icon_arg = ""
     if sys.platform == "win32":
-        icon_arg = f"    icon=[{_repo_relative_path(_icon_path())!r}],\n"
+        icon_arg = f"    icon=[{_absolute_path_for_spec(_icon_path())!r}],\n"
     replacements = {
         "__APP_NAME__": APP_NAME,
-        "__INPUT_FILE__": _repo_relative_path(INPUT_FILE),
-        "__SRC_PATH__": _repo_relative_path(REPO_ROOT / "src"),
+        "__INPUT_FILE__": _absolute_path_for_spec(INPUT_FILE),
+        "__SRC_PATH__": _absolute_path_for_spec(REPO_ROOT / "src"),
         "__ICON_ARG__": icon_arg,
     }
     for key, value in replacements.items():

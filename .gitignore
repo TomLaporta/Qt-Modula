@@ -1,6 +1,24 @@
-# Python cache artifacts
+# Python bytecode and cache artifacts
 __pycache__/
-*.pyc
+pycache/
+*.py[cod]
+*$py.class
+
+# Python tooling metadata and caches
+.coverage
+.coverage.*
+.hypothesis/
+.mypy_cache/
+.nox/
+.pyre/
+.pytest_cache/
+.ruff_cache/
+.tox/
+htmlcov/
+
+# Python packaging metadata
+.eggs/
+*.egg-info/
 
 # macOS Finder metadata
 .DS_Store

@@ -1,7 +1,13 @@
 # -*- mode: python ; coding: utf-8 -*-
 from pathlib import Path
+import sys
 
 from PyInstaller.utils.hooks import collect_data_files
+
+SRC_PATH = Path(r"__SRC_PATH__")
+SRC_TOKEN = str(SRC_PATH)
+if SRC_TOKEN not in sys.path:
+    sys.path.insert(0, SRC_TOKEN)
 
 datas = []
 datas += collect_data_files("qt_modula")
