@@ -23,6 +23,20 @@ Qt Modula is an independent project built to a professional standard: determinis
 
 Your support helps fund disciplined releases, documentation, packaging, and the steady polish that makes a tool trustworthy.
 
+## Running a Packaged MacOS Distribution
+
+- Double click the zipped distribution file to extract the "Qt Modula" folder. Place this somewhere you'll remember (like your desktop)
+- Open Finder -> Applications -> Utilities -> Terminal. Open the Terminal.
+- type "cd", then a space, then the path to your Qt Modula folder in quotes. Press Enter.
+- paste the following command, then press Enter: xattr -dr com.apple.quarantine "qt-modula.app"
+- Double click "qt-modula" in your unzipped distribution folder. It should now launch. (Do not move the executable file out of this folder)
+
+Example Terminal:
+```zsh
+cd "Desktop/Qt Modula"
+xattr -dr com.apple.quarantine "qt-modula.app"
+```
+
 ## Built-In Module Pack (v1)
 
 The first-party module set includes `40` built-ins across the platform families:
@@ -85,7 +99,7 @@ Invalid plugins are isolated and reported without blocking app startup.
 
 Packaged builds resolve plugins from the external `modules/` directory beside the executable.
 
-## Quick Start
+## Quick Start Source Tree
 
 macOS/Linux:
 
