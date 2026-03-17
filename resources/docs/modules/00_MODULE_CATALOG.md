@@ -2,8 +2,8 @@
 
 This catalog is the index for the built-in module reference set.
 
-- built-in modules in the current registry: `40`
-- module doc pages in this folder: `40`
+- built-in modules in the current registry: `43`
+- module doc pages in this folder: `43`
 - implementation source: `src/qt_modula/modules_builtin/`
 
 Detailed contracts, runtime notes, and examples live in each module page. This catalog stays intentionally concise so it does not drift from those per-module references.
@@ -27,6 +27,12 @@ Detailed contracts, runtime notes, and examples live in each module page. This c
 - `fx_quote` - `FX Quote` - `provider, source` - [FX_QUOTE.md](./FX_QUOTE.md)
 - `http_request` - `HTTP Request` - `provider, source` - [HTTP_REQUEST.md](./HTTP_REQUEST.md)
 - `market_fetcher` - `Market Fetcher` - `provider, source` - [MARKET_FETCHER.md](./MARKET_FETCHER.md)
+
+## Import
+
+- `text_import` - `Text Import` - `source` - [TEXT_IMPORT.md](./TEXT_IMPORT.md)
+- `json_import` - `JSON Import` - `source` - [JSON_IMPORT.md](./JSON_IMPORT.md)
+- `table_import` - `Table Import` - `source` - [TABLE_IMPORT.md](./TABLE_IMPORT.md)
 
 ## Transform
 

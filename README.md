@@ -39,10 +39,11 @@ xattr -dr com.apple.quarantine "qt-modula.app"
 
 ## Built-In Module Pack (v1)
 
-The first-party module set includes `40` built-ins across the platform families:
+The first-party module set includes `43` built-ins across the platform families:
 
 - Control (`11`): `interval_pulse`, `log_notes`, `number_input`, `options`, `text_input`, `trigger_button`, `trigger_debounce`, `trigger_delay`, `trigger_mapper`, `trigger_rate_limit`, `value_view`
 - Providers (`3`): `fx_quote`, `http_request`, `market_fetcher`
+- Import (`3`): `text_import`, `json_import`, `table_import`
 - Transform (`7`): `datetime_convert`, `json_project`, `json_transform`, `table_transform`, `template_formatter`, `value_scanner`, `value_wrapper`
 - Logic (`10`): `circuit_breaker`, `condition_gate`, `logic_combinator`, `retry_controller`, `trigger_join`, `trigger_join_n`, `value_change_gate`, `value_latch`, `value_router`, `value_selector`
 - Math (`2`): `arithmetic`, `formula_calculator`

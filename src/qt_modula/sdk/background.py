@@ -137,18 +137,20 @@ class BackgroundTaskRunner(QObject):
         self._task_token += 1
         self._in_flight = False
         for thread in tuple(self._live_threads.values()):
-            if thread.isRunning():
+            if self._thread_is_running(thread):
                 thread.quit()
         for thread in tuple(self._live_threads.values()):
-            if thread.isRunning():
+            if self._thread_is_running(thread):
                 thread.wait(timeout_ms)
         self._live_workers = {
             token: worker
             for token, worker in self._live_workers.items()
-            if token in self._live_threads and self._live_threads[token].isRunning()
+            if token in self._live_threads and self._thread_is_running(self._live_threads[token])
         }
         self._live_threads = {
-            token: thread for token, thread in self._live_threads.items() if thread.isRunning()
+            token: thread
+            for token, thread in self._live_threads.items()
+            if self._thread_is_running(thread)
         }
         with self._result_lock:
             active_tokens = set(self._live_threads)
@@ -160,3 +162,10 @@ class BackgroundTaskRunner(QObject):
             }
         self._worker = None
         self._thread = None
+
+    @staticmethod
+    def _thread_is_running(thread: QThread) -> bool:
+        try:
+            return thread.isRunning()
+        except RuntimeError:
+            return False

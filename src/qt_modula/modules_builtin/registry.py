@@ -25,6 +25,11 @@ from qt_modula.modules_builtin.control import (
     ValueViewModule,
 )
 from qt_modula.modules_builtin.export import TableExportModule, TextExportModule
+from qt_modula.modules_builtin.importers import (
+    JsonImportModule,
+    TableImportModule,
+    TextImportModule,
+)
 from qt_modula.modules_builtin.logic import (
     CircuitBreakerModule,
     ConditionGateModule,
@@ -61,6 +66,7 @@ ModuleConstructor = Callable[[str], BaseModule]
 _FAMILY_ORDER: tuple[str, ...] = (
     "Control",
     "Providers",
+    "Import",
     "Transform",
     "Logic",
     "Math",
@@ -106,6 +112,9 @@ _MODULE_CAPABILITIES: dict[str, tuple[CapabilityTag, ...]] = {
     "formula_calculator": ("transform",),
     "table_export": ("sink",),
     "text_export": ("sink",),
+    "text_import": ("source",),
+    "json_import": ("source",),
+    "table_import": ("source",),
     "parameter_sweep": ("transform", "source"),
     "table_buffer": ("transform",),
     "http_request": ("provider", "source"),
@@ -388,6 +397,18 @@ _CORE_BIND_PORTS: dict[str, tuple[frozenset[str], frozenset[str]]] = {
         ),
         frozenset({"path", "wrote", "char_count", "line_count"}),
     ),
+    "text_import": (
+        frozenset({"path", "auto_import", "import"}),
+        frozenset({"content", "char_count", "line_count", "path", "imported"}),
+    ),
+    "json_import": (
+        frozenset({"path", "auto_import", "import"}),
+        frozenset({"json", "keys", "item_count", "path", "imported"}),
+    ),
+    "table_import": (
+        frozenset({"path", "auto_import", "format", "sheet_name", "import"}),
+        frozenset({"rows", "row_count", "column_count", "columns", "path", "imported"}),
+    ),
 }
 
 
@@ -395,6 +416,8 @@ def _default_capabilities(family: str) -> tuple[CapabilityTag, ...]:
     token = family.strip().lower()
     if token == "control":
         return ("source", "scheduler")
+    if token == "import":
+        return ("source",)
     if token == "logic":
         return ("gate", "transform")
     if token in {"transform", "research", "analytics", "math"}:
@@ -528,6 +551,10 @@ def register_builtin_modules(registry: ModuleRegistry) -> None:
     registry.register_module(HttpRequestModule)
     registry.register_module(FxQuoteModule)
     registry.register_module(MarketFetcherModule)
+
+    registry.register_module(TextImportModule)
+    registry.register_module(JsonImportModule)
+    registry.register_module(TableImportModule)
 
     registry.register_module(DatetimeConvertModule)
     registry.register_module(JsonProjectModule)
